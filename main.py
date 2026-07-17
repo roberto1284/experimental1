@@ -7,15 +7,27 @@ from dataclasses import dataclass
 @dataclass
 class ExperimentalData:
     time: np.ndarray
-    pfeiffer1: np.ndarray
-    pfeiffer2: np.ndarray
-    agilent1: np.ndarray
-    agilent2: np.ndarray
-    temp1: np.ndarray
-    temp2: np.ndarray
+    pfeiffer_amont: np.ndarray
+    pfeiffer_avale: np.ndarray
+    agilent_amont: np.ndarray
+    agilent_avale: np.ndarray
+    temp_amont: np.ndarray
+    temp_avale: np.ndarray
     temp_eprouvette: np.ndarray
     pressure_check_amont: np.ndarray
     pressure_check_avale: np.ndarray
+
+
+@dataclass
+class AnalysisData:
+
+    time: np.ndarray
+
+    pressure_amont: np.ndarray
+    pressure_avale: np.ndarray
+
+    temp_moyenne_global: float
+
 
 #test hardcoded for now 
 
@@ -25,15 +37,15 @@ def load_excel_adrien():
     for file in case.glob("TRAITEMENT*.xlsx"):
         df = pd.read_excel(file)
         
-    pfeiffer1 = df["Pfeiffer_P1 [mbar]"].to_numpy()
-    pfeiffer2 = df["Pfeiffer_P2 [mbar]"].to_numpy()
-    agilent1 = df["Agilent_P1 [mbar]"].to_numpy()
-    agilent2 = df["Agilent_P2 [mbar]"].to_numpy()
-    temp1 = df["Temp_P1 [ｰC]"].to_numpy()
-    temp2 = df["Temp_P2 [ｰC]"].to_numpy()
-    temp_eprouvette = df["Temp_Eprouvette [ｰC]"].to_numpy()
+    pfeiffer_amont = df["Pfeiffer_P1 [mbar]"].to_numpy()
+    pfeiffer_avale = df["Pfeiffer_P2 [mbar]"].to_numpy()
+    agilent_amont = df["Agilent_P1 [mbar]"].to_numpy()
+    agilent_avale = df["Agilent_P2 [mbar]"].to_numpy()
+    temp_amont = df["Temp_P1 [ｰC]"].to_numpy()+273.15
+    temp_avale = df["Temp_P2 [ｰC]"].to_numpy()+273.15
+    temp_eprouvette = df["Temp_Eprouvette [ｰC]"].to_numpy()+273.15
 
-    time=np.arange(len(pfeiffer1))  #i noticed that all the measurements are exactly separated by 1sec, check each case prolly
+    time=np.arange(len(pfeiffer_amont))  #i noticed that all the measurements are exactly separated by 1sec, check each case prolly
 
 
     pressure_check_amont = df["P_amont [Pa]"].to_numpy()
@@ -41,46 +53,64 @@ def load_excel_adrien():
 
     return ExperimentalData(
         time=time,
-        pfeiffer1=pfeiffer1,
-        pfeiffer2=pfeiffer2,
-        agilent1=agilent1,
-        agilent2=agilent2,
-        temp1=temp1,
-        temp2=temp2,
+        pfeiffer_amont=pfeiffer_amont,
+        pfeiffer_avale=pfeiffer_avale,
+        agilent_amont=agilent_amont,
+        agilent_avale=agilent_avale,
+        temp_amont=temp_amont,
+        temp_avale=temp_avale,
         temp_eprouvette=temp_eprouvette,
         pressure_check_amont=pressure_check_amont,
         pressure_check_avale=pressure_check_avale,
     )
 
+def extract_important_data(raw_data):
+    pressure_amont,pressure_avale=capteur_selector(raw_data.pfeiffer_amont,raw_data.pfeiffer_avale,raw_data.agilent_amont,raw_data.agilent_avale)
+
+    
+    assert np.allclose(pressure_amont, raw_data.pressure_check_amont)  #use assert maybe
+    assert np.allclose(pressure_avale, raw_data.pressure_check_avale)
+
+    temp_amont_moyenne=np.mean(raw_data.temp_amont)
+    temp_avale_moyenne=np.mean(raw_data.temp_avale)
+    temp_eprouvette_moyenne=np.mean(raw_data.temp_eprouvette)
+
+    temp_moyenne_global=np.mean([temp_amont_moyenne,temp_avale_moyenne,temp_eprouvette_moyenne])
+
+    return AnalysisData(
+        time=raw_data.time, pressure_amont=pressure_amont, pressure_avale=pressure_avale, temp_moyenne_global=temp_moyenne_global)
+
+
 def capteur_selector(pf1,pf2,ag1,ag2):
-    P_amont = []
-    P_avale = []
+    pressure_amont = []
+    pressure_avale = []
     i=0
     for value in pf1:
         if value > 10:
-            P_amont.append(value*100)
+            pressure_amont.append(value*100)
         else:
-            P_amont.append(ag1[i]*100)
+            pressure_amont.append(ag1[i]*100)
         i+=1
     i=0
     for value in pf2:
         if value > 10:
-            P_avale.append(value*100)
+            pressure_avale.append(value*100)
         else:
-            P_avale.append(ag2[i]*100)
+            pressure_avale.append(ag2[i]*100)
         i+=1
-    P_amont = np.array(P_amont)
-    P_avale = np.array(P_avale)
-    return P_amont, P_avale    
+    pressure_amont = np.array(pressure_amont)
+    pressure_avale = np.array(pressure_avale)
+    return pressure_amont, pressure_avale    
 
 
 
 def main():
-    data=load_excel_adrien()
-    P_amont,P_avale=capteur_selector(data.pfeiffer1,data.pfeiffer2,data.agilent1,data.agilent2)
+    raw_data=load_excel_adrien()
+    analysis_data=extract_important_data(raw_data)
+
     
-    print(np.allclose(P_amont, data.pressure_check_amont))
-    print(np.allclose(P_avale, data.pressure_check_avale))
+    
+    
 
 
     
