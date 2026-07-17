@@ -14,9 +14,18 @@ def load_excel_check():
     p_amont_smooth_check=df_analyse["Pamont lissé [Pa]"].to_numpy()
     permeability_apparent_check=df_analyse["K_apparent [m²]"].to_numpy()
     conductance_apparent_check=df_analyse["Conductance apparente [m3/s]"].to_numpy()
-    p_apperent_smooth_check=df_analyse["P_moyen apparente lissée [Pa]"].to_numpy()
+    p_apparent_smooth_check=df_analyse["P_moyen apparente lissée [Pa]"].to_numpy()
 
-    return a_amont_check,b_amont_check,p_amont_smooth_check,permeability_apparent_check,conductance_apparent_check,p_apperent_smooth_check
+    
+    return {
+        "a_amont": a_amont_check,
+        "b_amont": b_amont_check,
+        "p_amont_smooth": p_amont_smooth_check,
+        "p_apparent_smooth": p_apparent_smooth_check,
+        "permeability_apparent": permeability_apparent_check,
+        "conductance_apparent": conductance_apparent_check,
+    }
+
 
 
 def validate_against_excel(
@@ -28,43 +37,34 @@ def validate_against_excel(
     conductance_apparent,
 ):
 
-    
-    (
-        a_amont_check,
-        b_amont_check,
-        p_amont_smooth_check,
-        permeability_apparent_check,
-        conductance_apparent_check,
-        p_apparent_smooth_check,
-    ) = load_excel_check()
-
+    excel = load_excel_check()
 
     print("Check a:",
-          np.allclose(a_amont, a_amont_check))
+          np.allclose(a_amont, excel["a_amont"]))
 
     print("Check b:",
-          np.allclose(b_amont, b_amont_check))
+          np.allclose(b_amont, excel["b_amont"]))
 
     print("Check P:",
           np.allclose(
               p_amont_smooth,
-                p_amont_smooth_check
+              excel["p_amont_smooth"]
           ))
 
     print("Check P apparent:",
           np.allclose(
               p_apparent_smooth,
-              p_apparent_smooth_check
+              excel["p_apparent_smooth"]
           ))
 
     print("Check permeability:",
           np.allclose(
               permeability_apparent,
-              permeability_apparent_check
+              excel["permeability_apparent"]
           ))
 
     print("Check conductance:",
           np.allclose(
               conductance_apparent,
-              conductance_apparent_check
+              excel["conductance_apparent"]
           ))

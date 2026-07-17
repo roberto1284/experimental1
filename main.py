@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 import pandas as pd
+from validation import validate_against_excel
 
 from constants import (
     DYNAMIC_VISCOSITY,
@@ -62,7 +63,7 @@ def main():
     a_amont,b_amont,p_amont_smooth=local_linear_regression(analysis_data.time,analysis_data.pressure_amont,126)
     a_avale,b_avale,p_avale_smooth=local_linear_regression(analysis_data.time,analysis_data.pressure_avale,126)
 
-    p_apperent_smooth=APPARENT_PRESSURE_FACTOR*p_amont_smooth+(1-APPARENT_PRESSURE_FACTOR)*p_avale_smooth
+    p_apparent_smooth=APPARENT_PRESSURE_FACTOR*p_amont_smooth+(1-APPARENT_PRESSURE_FACTOR)*p_avale_smooth
     
     permeability_apparent = (
         np.abs(a_amont)
@@ -77,10 +78,24 @@ def main():
     conductance_apparent = (
         SECTION_PASSANTE
         * permeability_apparent
-        * p_apperent_smooth
+        * p_apparent_smooth
         / DYNAMIC_VISCOSITY
         / EPAISSEUR_ECHANTILLON
     )    
+
+    
+    VALIDATION = True
+
+    if VALIDATION:
+        validate_against_excel(
+            a_amont,
+            b_amont,
+            p_amont_smooth,
+            p_apparent_smooth,
+            permeability_apparent,
+            conductance_apparent,
+        )
+
 
 if __name__=="__main__":
     main()   
