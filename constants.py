@@ -1,0 +1,32 @@
+# Gas properties
+
+GAS_NAME = "Air"
+
+R_GAS = 287.0210563              # J/kg/K
+REFERENCE_TEMPERATURE = 292.9576435  # K
+DYNAMIC_VISCOSITY = 1.81e-5      # Pa.s
+
+
+# Sample geometry
+
+RAYON_PASSANT = 0.04             # m
+SECTION_PASSANTE = 0.005026548   # m²
+
+RAYON_ECHANTILLON = 0.0475       # m
+EPAISSEUR_ECHANTILLON = 0.04     # m
+
+SURFACE_LATERALE = 0.011938052   # m²
+
+CYLINDER_SHAPE_FACTOR = 2.93     # -
+
+V_AMONT = 0.0032                # m³
+
+APPARENT_PRESSURE_FACTOR = 0.8189  # -
+
+
+
+# reference values from Excel
+
+PERMEABILITY_REF = 1.90e-14
+KLINKENBERG_ORDER_1_REF = 3.50e3
+KLINKENBERG_ORDER_2_REF = 8.40e5
