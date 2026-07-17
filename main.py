@@ -4,6 +4,7 @@ import numpy as np
 from pathlib import Path
 import pandas as pd
 from validation import validate_against_excel
+from models import ExcelAdrien
 
 from constants import (
     DYNAMIC_VISCOSITY,
@@ -52,7 +53,9 @@ def local_linear_regression(time,pressure,half_window):
 
 def main():
     raw_data=load_excel_adrien()
-    analysis_data=extract_important_data(raw_data)   
+    analysis_data=extract_important_data(raw_data)  
+    model = ExcelAdrien(analysis_data)
+     
     dP_dt = np.gradient(
         analysis_data.pressure_amont,
         analysis_data.time,
@@ -60,28 +63,26 @@ def main():
 
     #plotting(analysis_data.time,"Time",dP_dt,"Derivative")
     
-    a_amont,b_amont,p_amont_smooth=local_linear_regression(analysis_data.time,analysis_data.pressure_amont,126)
-    a_avale,b_avale,p_avale_smooth=local_linear_regression(analysis_data.time,analysis_data.pressure_avale,126)
+    a_amont,b_amont,p_amont_smooth=model.local_linear_regression(analysis_data.pressure_amont)
+    a_avale,b_avale,p_avale_smooth=model.local_linear_regression(analysis_data.pressure_avale)
 
-    p_apparent_smooth=APPARENT_PRESSURE_FACTOR*p_amont_smooth+(1-APPARENT_PRESSURE_FACTOR)*p_avale_smooth
     
-    permeability_apparent = (
-        np.abs(a_amont)
-        * V_AMONT
-        * DYNAMIC_VISCOSITY
-        * EPAISSEUR_ECHANTILLON
-        / SECTION_PASSANTE
-        / CYLINDER_SHAPE_FACTOR
-        / (0.5 * (p_amont_smooth**2 - p_avale_smooth**2))
+    p_apparent_smooth = model.apparent_pressure(
+        p_amont_smooth,
+        p_avale_smooth,
+    )
+
+    permeability_apparent = model.apparent_permeability(
+        a_amont,
+        p_amont_smooth,
+        p_avale_smooth,
+    )
+
+    conductance_apparent = model.apparent_conductance(
+        permeability_apparent,
+        p_apparent_smooth,
     )
     
-    conductance_apparent = (
-        SECTION_PASSANTE
-        * permeability_apparent
-        * p_apparent_smooth
-        / DYNAMIC_VISCOSITY
-        / EPAISSEUR_ECHANTILLON
-    )    
 
     
     VALIDATION = True
@@ -95,6 +96,53 @@ def main():
             permeability_apparent,
             conductance_apparent,
         )
+
+    
+    plt.figure(figsize=(10, 6))
+
+    plt.plot(
+        analysis_data.time,
+        analysis_data.pressure_amont,
+        label="Pamont raw",
+    )
+
+    plt.plot(
+        analysis_data.time,
+        p_amont_smooth,
+        label="Pamont smooth",
+    )
+
+    plt.xlabel("Time [s]")
+    plt.ylabel("Pressure [Pa]")
+    plt.legend()
+    plt.grid()
+
+    plt.show()
+
+    plt.figure(figsize=(10, 6))
+
+    plt.plot(
+        analysis_data.time,
+        dP_dt,
+        alpha=0.5,
+        label="Raw derivative (np.gradient)",
+    )
+
+    plt.plot(
+        analysis_data.time,
+        a_amont,
+        linewidth=2,
+        label="Smoothed derivative (linear regression)",
+    )
+
+    plt.xlabel("Time [s]")
+    plt.ylabel("dP/dt [Pa/s]")
+
+    plt.legend()
+    plt.grid()
+
+    plt.show()
+
 
 
 if __name__=="__main__":
