@@ -9,6 +9,10 @@ def load_excel_check():
         df_data = pd.read_excel(file,sheet_name=0,header=21,usecols="B:I,M:N,P:U")
         df_analyse = pd.read_excel(file,sheet_name=1,header=22,usecols="B:P")
     
+    p_amont_ordre2_check=df_data["Pamont 1D visqueux + raréfié ordre 1 + raréfié ordre 2 [Pa]"].to_numpy()
+
+
+    
     a_amont_check=df_analyse["Interpolation linéaire a - Pamont [Pa/s]"].to_numpy()
     b_amont_check=df_analyse["Interpolation linéaire b - Pamont [Pa/s]"].to_numpy()
     p_amont_smooth_check=df_analyse["Pamont lissé [Pa]"].to_numpy()
@@ -18,6 +22,7 @@ def load_excel_check():
 
     
     return {
+        "p_amont_ordre2": p_amont_ordre2_check,
         "a_amont": a_amont_check,
         "b_amont": b_amont_check,
         "p_amont_smooth": p_amont_smooth_check,
@@ -29,6 +34,7 @@ def load_excel_check():
 
 
 def validate_against_excel(
+    p_amont_ordre2,
     a_amont,
     b_amont,
     p_amont_smooth,
@@ -67,4 +73,10 @@ def validate_against_excel(
           np.allclose(
               conductance_apparent,
               excel["conductance_apparent"]
+          ))
+    
+    print("Check P_amont ordre 2:",
+          np.allclose(
+              p_amont_ordre2,
+              excel["p_amont_ordre2"]
           ))

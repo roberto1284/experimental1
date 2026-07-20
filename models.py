@@ -7,8 +7,10 @@ from constants import (
     CYLINDER_SHAPE_FACTOR,
     V_AMONT,
     APPARENT_PRESSURE_FACTOR,
+    KLINKENBERG_ORDER_1_REF,
+    KLINKENBERG_ORDER_2_REF,
+    PERMEABILITY_REF
 )
-
 
 class ExcelAdrien:
 
@@ -95,3 +97,69 @@ class ExcelAdrien:
             / DYNAMIC_VISCOSITY
             / EPAISSEUR_ECHANTILLON
         )
+    
+    def pamont(
+        self,
+        p_amont,
+        p_avale,
+        dt,
+        order,
+    ):
+        
+        coef = (
+            1 / V_AMONT
+            * PERMEABILITY_REF
+            / DYNAMIC_VISCOSITY
+            * CYLINDER_SHAPE_FACTOR
+            * SECTION_PASSANTE
+            / EPAISSEUR_ECHANTILLON
+        )
+
+        term = 0.5 * (p_amont**2 - p_avale**2)
+
+        if order >= 1:
+            term += (
+                KLINKENBERG_ORDER_1_REF
+                * (p_amont - p_avale)
+            )
+
+        if order >= 2:
+            term += (
+                KLINKENBERG_ORDER_2_REF
+                * np.log(p_amont / p_avale)
+            )
+
+        return p_amont - dt * coef * term
+    
+    
+    def simulate_pamont(
+        self,
+        p_amont_0,
+        p_avale,
+        time,
+        order,
+    ):
+
+        p_amont_simulated = [p_amont_0]
+
+        for i in range(1, len(time)):
+
+            dt = time[i] - time[i - 1]
+
+            p_amont_next = self.pamont(
+                p_amont_simulated[-1],
+                p_avale[i - 1],
+                dt,
+                order,
+            )
+
+            p_amont_simulated.append(p_amont_next)
+
+        return np.array(p_amont_simulated)
+
+    
+
+
+
+
+
