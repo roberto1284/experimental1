@@ -14,7 +14,7 @@ from constants import (
     PERMEABILITY_REF
 )
 
-class ExcelAdrien:
+class ExcelModel:
 
     def __init__(self, analysis_data):
 

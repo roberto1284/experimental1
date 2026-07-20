@@ -42,9 +42,11 @@ class Results:
     p_amont_ordre2: np.ndarray
 
     knudsen: np.ndarray
+    dP_dt: np.ndarray
 
     
     viscous_mask: np.ndarray
     slip_mask: np.ndarray
     transition_mask: np.ndarray
     free_molecular_mask: np.ndarray
+    method: str

@@ -30,24 +30,33 @@ def plot_pressure_smoothing(
 
 def plot_derivative_comparison(
     time,
-    derivative_raw,
-    derivative_smooth,
+    derivative_gradient,
+    derivative_regression,
+    derivative_savgol,
 ):
 
     plt.figure(figsize=(10, 6))
 
     plt.plot(
         time,
-        derivative_raw,
+        derivative_gradient,
         alpha=0.5,
-        label="Raw derivative (np.gradient)",
+        linewidth=0.5,
+        label="Gradient",
     )
 
     plt.plot(
         time,
-        derivative_smooth,
+        derivative_regression,
         linewidth=2,
-        label="Smoothed derivative (linear regression)",
+        label="Local linear regression",
+    )
+
+    plt.plot(
+        time,
+        derivative_savgol,
+        linewidth=2,
+        label="Savitzky-Golay",
     )
 
     plt.xlabel("Time [s]")
