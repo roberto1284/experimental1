@@ -3,6 +3,8 @@ import numpy as np
 from constants import (
     DYNAMIC_VISCOSITY,
     EPAISSEUR_ECHANTILLON,
+    R_GAS,
+    REFERENCE_TEMPERATURE,
     SECTION_PASSANTE,
     CYLINDER_SHAPE_FACTOR,
     V_AMONT,
@@ -61,7 +63,7 @@ class ExcelAdrien:
             + (1 - APPARENT_PRESSURE_FACTOR) * p_avale_smooth
         )
 
-    def apparent_permeability(
+    def apparent_permeability_experimental(
         self,
         a_amont,
         p_amont_smooth,
@@ -156,6 +158,84 @@ class ExcelAdrien:
             p_amont_simulated.append(p_amont_next)
 
         return np.array(p_amont_simulated)
+    
+    def apparent_permeability_model(
+        self,
+        pressure,
+    ):
+
+        return (
+            PERMEABILITY_REF*(1+KLINKENBERG_ORDER_1_REF/pressure+KLINKENBERG_ORDER_2_REF/(pressure**2))
+        )
+    
+    def permeability_contributions(
+        self,
+        pressure
+    ):
+
+        return {
+            "viscous": 1/(1+KLINKENBERG_ORDER_1_REF/pressure+KLINKENBERG_ORDER_2_REF/(pressure**2)),
+            "klinkenberg_order_1": KLINKENBERG_ORDER_1_REF/pressure/(1+KLINKENBERG_ORDER_1_REF/pressure+KLINKENBERG_ORDER_2_REF/(pressure**2)),
+            "klinkenberg_order_2": KLINKENBERG_ORDER_2_REF/(pressure**2)/(1+KLINKENBERG_ORDER_1_REF/pressure+KLINKENBERG_ORDER_2_REF/(pressure**2)),
+        }
+    
+    def knudsen_number(
+        self,
+        pressure,
+        characteristic_length,
+        
+    ):
+        
+        mean_free_path = (
+                DYNAMIC_VISCOSITY
+                / (
+                    pressure
+                    / R_GAS
+                    / REFERENCE_TEMPERATURE
+                )
+                / np.sqrt(
+                    R_GAS
+                    * REFERENCE_TEMPERATURE
+                )
+            )
+
+        return mean_free_path / characteristic_length
+    
+    def model_errors(
+        self,
+        pressure_exp,
+        pressure_model,
+    ):
+
+        return {
+            "viscous": np.abs(
+                pressure_exp**2
+                - pressure_model**2
+            ),
+
+            "rarefaction_order_1": np.abs(
+                pressure_exp
+                - pressure_model
+            ),
+
+            "rarefaction_order_2": np.abs(
+                np.log(
+                    pressure_exp
+                    / pressure_model
+                )
+            ),
+
+            "absolute": (
+                np.abs(
+                    pressure_exp
+                    - pressure_model
+                )
+                / pressure_exp
+            ),
+        }
+
+ 
+       
 
     
 

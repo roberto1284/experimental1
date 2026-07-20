@@ -23,3 +23,28 @@ class AnalysisData:
     pressure_avale: np.ndarray
 
     temp_moyenne_global: float
+
+@dataclass
+class Results:
+
+    p_amont_smooth: np.ndarray
+    p_avale_smooth: np.ndarray
+
+    p_apparent_smooth: np.ndarray
+
+    k_apparent_exp: np.ndarray
+    k_apparent_model: np.ndarray
+
+    conductance_apparent: np.ndarray
+
+    p_amont_ordre0: np.ndarray
+    p_amont_ordre1: np.ndarray
+    p_amont_ordre2: np.ndarray
+
+    knudsen: np.ndarray
+
+    
+    viscous_mask: np.ndarray
+    slip_mask: np.ndarray
+    transition_mask: np.ndarray
+    free_molecular_mask: np.ndarray

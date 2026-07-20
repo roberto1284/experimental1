@@ -68,3 +68,330 @@ def plotting(x,name_x,y,name_y):
     plt.grid()
 
     plt.show()
+
+
+def plot_pressure_models(
+    time,
+    pressure_exp,
+    pressure_order0,
+    pressure_order1,
+    pressure_order2,
+):
+
+    plt.figure(figsize=(10, 6))
+
+    plt.plot(
+        time,
+        pressure_exp,
+        label="Experimental",
+        linewidth=2,
+    )
+
+    plt.plot(
+        time,
+        pressure_order0,
+        label="Darcy (order 0)",
+    )
+
+    plt.plot(
+        time,
+        pressure_order1,
+        label="Klinkenberg order 1",
+    )
+
+    plt.plot(
+        time,
+        pressure_order2,
+        label="Klinkenberg order 2",
+    )
+
+    plt.xlabel("Time [s]")
+    plt.ylabel("Pressure [Pa]")
+
+    plt.legend()
+    plt.grid()
+
+    plt.show()
+
+
+def plot_apparent_permeability(
+    time,
+    pressure,
+    k_app_exp,
+    k_app_model,
+):
+
+    fig, axes = plt.subplots(
+        2,
+        1,
+        figsize=(10, 10),
+        constrained_layout=True,
+    )
+
+    # Kapp vs pressure
+
+    axes[0].plot(
+        pressure,
+        k_app_exp,
+        label="Experimental",
+    )
+
+    axes[0].plot(
+        pressure,
+        k_app_model,
+        label="Model",
+    )
+
+    axes[0].set_xlabel("Apparent pressure [Pa]")
+    axes[0].set_ylabel("Apparent permeability [m²]")
+    axes[0].set_title("Kapp vs apparent pressure")
+
+    axes[0].grid()
+    axes[0].legend()
+
+    # Kapp vs time
+
+    axes[1].plot(
+        time,
+        k_app_exp,
+        label="Experimental",
+    )
+
+    axes[1].plot(
+        time,
+        k_app_model,
+        label="Model",
+    )
+
+    axes[1].set_xlabel("Time [s]")
+    axes[1].set_ylabel("Apparent permeability [m²]")
+    axes[1].set_title("Kapp vs time")
+
+    axes[1].grid()
+    axes[1].legend()
+
+    plt.show()
+
+def add_knudsen_regions(ax, x, mask, color, label):
+    """
+    Add translucent colored regions to a plot.
+    """
+
+    start = None
+
+    for i, active in enumerate(mask):
+
+        if active and start is None:
+            start = i
+
+        elif not active and start is not None:
+
+            ax.axvspan(
+                x[start],
+                x[i - 1],
+                color=color,
+                alpha=0.15,
+                label=label,
+            )
+
+            start = None
+            label = None
+
+    if start is not None:
+
+        ax.axvspan(
+            x[start],
+            x[-1],
+            color=color,
+            alpha=0.15,
+            label=label,
+        )
+
+def add_all_knudsen_regions(ax, x, results):
+
+    add_knudsen_regions(
+        ax,
+        x,
+        results.viscous_mask,
+        "tab:blue",
+        "Viscous",
+    )
+
+    add_knudsen_regions(
+        ax,
+        x,
+        results.slip_mask,
+        "tab:green",
+        "Slip",
+    )
+
+    add_knudsen_regions(
+        ax,
+        x,
+        results.transition_mask,
+        "tab:orange",
+        "Transition",
+    )
+
+    add_knudsen_regions(
+        ax,
+        x,
+        results.free_molecular_mask,
+        "tab:red",
+        "Free molecular",
+    )
+
+def plot_summary(
+    analysis_data,
+    results,
+):
+
+    fig, axes = plt.subplots(
+        2,
+        2,
+        figsize=(14, 10),
+        constrained_layout=True,
+    )
+
+    # ==========================================================
+    # Pamont models
+    # ==========================================================
+
+    add_all_knudsen_regions(
+        axes[0, 0],
+        analysis_data.time,
+        results,
+    )
+
+    axes[0, 0].plot(
+        analysis_data.time,
+        analysis_data.pressure_amont,
+        label="Experimental",
+        linewidth=2,
+    )
+
+    axes[0, 0].plot(
+        analysis_data.time,
+        results.p_amont_ordre0,
+        label="Order 0",
+    )
+
+    axes[0, 0].plot(
+        analysis_data.time,
+        results.p_amont_ordre1,
+        label="Order 1",
+    )
+
+    axes[0, 0].plot(
+        analysis_data.time,
+        results.p_amont_ordre2,
+        label="Order 2",
+    )
+
+    axes[0, 0].set_title("Pamont model comparison")
+    axes[0, 0].set_xlabel("Time [s]")
+    axes[0, 0].set_ylabel("Pressure [Pa]")
+    axes[0, 0].grid()
+    axes[0, 0].legend()
+
+    # ==========================================================
+    # Kapp vs apparent pressure
+    # ==========================================================
+
+    axes[0, 1].plot(
+        results.p_apparent_smooth[results.viscous_mask],
+        results.k_apparent_exp[results.viscous_mask],
+        ".",
+        color="tab:blue",
+        label="Viscous",
+    )
+
+    axes[0, 1].plot(
+        results.p_apparent_smooth[results.slip_mask],
+        results.k_apparent_exp[results.slip_mask],
+        ".",
+        color="tab:green",
+        label="Slip",
+    )
+
+    axes[0, 1].plot(
+        results.p_apparent_smooth[results.transition_mask],
+        results.k_apparent_exp[results.transition_mask],
+        ".",
+        color="tab:orange",
+        label="Transition",
+    )
+
+    axes[0, 1].plot(
+        results.p_apparent_smooth[results.free_molecular_mask],
+        results.k_apparent_exp[results.free_molecular_mask],
+        ".",
+        color="tab:red",
+        label="Free molecular",
+    )
+
+    axes[0, 1].plot(
+        results.p_apparent_smooth,
+        results.k_apparent_model,
+        color="black",
+        linewidth=2,
+        label="Model",
+    )
+
+    axes[0, 1].set_title("Kapp vs apparent pressure")
+    axes[0, 1].set_xlabel("Apparent pressure [Pa]")
+    axes[0, 1].set_ylabel("Apparent permeability [m²]")
+    axes[0, 1].grid()
+    axes[0, 1].legend()
+
+    # ==========================================================
+    # P apparent vs time
+    # ==========================================================
+
+    add_all_knudsen_regions(
+        axes[1, 0],
+        analysis_data.time,
+        results,
+    )
+
+    axes[1, 0].plot(
+        analysis_data.time,
+        results.p_apparent_smooth,
+        color="black",
+        linewidth=2,
+    )
+
+    axes[1, 0].set_title("Apparent pressure")
+    axes[1, 0].set_xlabel("Time [s]")
+    axes[1, 0].set_ylabel("Pressure [Pa]")
+    axes[1, 0].grid()
+
+    # ==========================================================
+    # Kapp vs time
+    # ==========================================================
+
+    add_all_knudsen_regions(
+        axes[1, 1],
+        analysis_data.time,
+        results,
+    )
+
+    axes[1, 1].plot(
+        analysis_data.time,
+        results.k_apparent_exp,
+        label="Experimental",
+    )
+
+    axes[1, 1].plot(
+        analysis_data.time,
+        results.k_apparent_model,
+        label="Model",
+    )
+
+    axes[1, 1].set_title("Kapp vs time")
+    axes[1, 1].set_xlabel("Time [s]")
+    axes[1, 1].set_ylabel("Apparent permeability [m²]")
+    axes[1, 1].grid()
+    axes[1, 1].legend()
+
+    plt.show()
