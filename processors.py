@@ -1,6 +1,6 @@
 from scipy.signal import savgol_filter
 import numpy as np
-from experimental_data import Results
+from experimental_data import AnalysisData, Results
 from processor_utils import build_results
 
 class SavgolProcessor:
@@ -79,6 +79,37 @@ class LocalLinearRegressionProcessor:
         half_window=126,
     ):
         self.half_window = half_window
+    
+    def local_linear_regression(
+        self,
+        pressure,
+        time,
+    ):
+
+        a_array = []
+        b_array = []
+
+        N = len(time)
+
+        for i in range(N):
+
+            start = max(i - self.half_window, 0)
+            end = min(i + self.half_window + 1, N)
+
+            t = time[start:end]
+            P = pressure[start:end]
+
+            a, b = np.polyfit(t, P, 1)
+
+            a_array.append(a)
+            b_array.append(b)
+
+        a_array = np.array(a_array)
+        b_array = np.array(b_array)
+
+        pressure_smooth = a_array * time + b_array
+
+        return a_array, b_array, pressure_smooth
 
     def process(
         self,
@@ -86,14 +117,14 @@ class LocalLinearRegressionProcessor:
         model,
     ):
 
-        a_amont, b_amont, p_amont_smooth = model.local_linear_regression(
+        a_amont, b_amont, p_amont_smooth = self.local_linear_regression(
             analysis_data.pressure_amont,
-            half_window=self.half_window,
+            time=analysis_data.time,
         )
 
-        a_avale, b_avale, p_avale_smooth = model.local_linear_regression(
+        a_avale, b_avale, p_avale_smooth = self.local_linear_regression(
             analysis_data.pressure_avale,
-            half_window=self.half_window,
+            time=analysis_data.time,
         )
 
         return build_results(
