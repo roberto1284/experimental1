@@ -88,7 +88,7 @@ class DarcyKlinkenbergModel:
 
         return mean_free_path / characteristic_length
     
-    def pressure_amont(
+    def compute_next_pressure_amont(
             self,
             p_amont,
             p_avale,
@@ -111,7 +111,7 @@ class DarcyKlinkenbergModel:
                 self.b1
                 * (p_amont - p_avale)
             )
-
+            
         if order >= 2:
             term += (
                 self.b2
@@ -120,7 +120,7 @@ class DarcyKlinkenbergModel:
 
         return p_amont - dt * coef * term
     
-    def simulate_pamont(
+    def simulate_pression_amont(
         self,
         p_amont_0,
         p_avale,
@@ -134,7 +134,7 @@ class DarcyKlinkenbergModel:
 
             dt = time[i] - time[i - 1]
 
-            p_amont_next = self.pressure_amont(
+            p_amont_next = self.compute_next_pressure_amont(
                 p_amont_simulated[-1],
                 p_avale[i - 1],
                 dt,

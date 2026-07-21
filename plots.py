@@ -253,6 +253,7 @@ def add_all_knudsen_regions(ax, x, results):
 def plot_summary(
     analysis_data,
     results,
+    title="Summary"
 ):
 
     fig, axes = plt.subplots(
@@ -261,6 +262,7 @@ def plot_summary(
         figsize=(14, 10),
         constrained_layout=True,
     )
+    fig.suptitle(title, fontsize=16)
 
     # ==========================================================
     # Pamont models
@@ -402,5 +404,3 @@ def plot_summary(
     axes[1, 1].set_ylabel("Apparent permeability [m²]")
     axes[1, 1].grid()
     axes[1, 1].legend()
-
-    plt.show()

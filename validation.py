@@ -1,6 +1,12 @@
 from pathlib import Path
 import pandas as pd
 import numpy as np
+from constants import (
+    KLINKENBERG_ORDER_1_REF,
+    KLINKENBERG_ORDER_2_REF,
+    PERMEABILITY_REF,
+)
+
 
 def load_excel_check():
     local=Path(".")
@@ -80,3 +86,112 @@ def validate_against_excel(
               p_amont_ordre2,
               excel["p_amont_ordre2"]
           ))
+
+
+def compare_results(
+    results_ref,
+    results_test,
+):
+    checks = {
+        "p_amont_smooth": np.allclose(
+            results_ref.p_amont_smooth,
+            results_test.p_amont_smooth,
+        ),
+        "p_avale_smooth": np.allclose(
+            results_ref.p_avale_smooth,
+            results_test.p_avale_smooth,
+        ),
+        "p_apparent_smooth": np.allclose(
+            results_ref.p_apparent_smooth,
+            results_test.p_apparent_smooth,
+        ),
+        "dP_dt": np.allclose(
+            results_ref.dP_dt,
+            results_test.dP_dt,
+        ),
+        "k_apparent_exp": np.allclose(
+            results_ref.k_apparent_exp,
+            results_test.k_apparent_exp,
+        ),
+        "k_apparent_model": np.allclose(
+            results_ref.k_apparent_model,
+            results_test.k_apparent_model,
+        ),
+        "conductance_apparent": np.allclose(
+            results_ref.conductance_apparent,
+            results_test.conductance_apparent,
+        ),
+        "p_amont_ordre0": np.allclose(
+            results_ref.p_amont_ordre0,
+            results_test.p_amont_ordre0,
+        ),
+        "p_amont_ordre1": np.allclose(
+            results_ref.p_amont_ordre1,
+            results_test.p_amont_ordre1,
+        ),
+        "p_amont_ordre2": np.allclose(
+            results_ref.p_amont_ordre2,
+            results_test.p_amont_ordre2,
+        ),
+        "knudsen": np.allclose(
+            results_ref.knudsen,
+            results_test.knudsen,
+        ),
+    }
+
+    print("\nResults comparison")
+    print("-" * 40)
+
+    for name, equal in checks.items():
+        print(f"{name:<25} {equal}")
+
+    print("-" * 40)
+
+    return all(checks.values())
+
+
+def check_optimization(optimizer):
+    K_opt = optimizer.optimize_permeability()
+
+    print("K optimized:", K_opt)
+    
+    cost_initial = optimizer.objective_permeability(
+        PERMEABILITY_REF
+    )
+
+    cost_final = optimizer.objective_permeability(
+        K_opt
+    )
+
+    
+    print("cost_initial:", cost_initial)
+    print("cost_final:", cost_final)
+    b1_opt = optimizer.optimize_b1()
+
+    print("b1 optimized:", b1_opt)
+
+    cost_initial = optimizer.objective_b1(
+        KLINKENBERG_ORDER_1_REF
+    )
+
+    cost_final = optimizer.objective_b1(
+        b1_opt
+    )
+
+    print("b1 cost_initial:", cost_initial)
+    print("b1 cost_final:", cost_final)
+
+    b2_opt = optimizer.optimize_b2()
+
+    print("b2 optimized:", b2_opt)
+
+    cost_initial = optimizer.objective_b2(
+        KLINKENBERG_ORDER_2_REF
+    )
+
+    cost_final = optimizer.objective_b2(
+        b2_opt
+    )
+
+    print("b2 cost_initial:", cost_initial)
+    print("b2 cost_final:", cost_final)

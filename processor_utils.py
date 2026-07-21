@@ -30,21 +30,21 @@ def build_results(
         )
     )
 
-    p_amont_ordre0 = model.simulate_pamont(
+    p_amont_ordre0 = model.simulate_pression_amont(
         analysis_data.pressure_amont[0],
         analysis_data.pressure_avale,
         analysis_data.time,
         order=0,
     )
 
-    p_amont_ordre1 = model.simulate_pamont(
+    p_amont_ordre1 = model.simulate_pression_amont(
         analysis_data.pressure_amont[0],
         analysis_data.pressure_avale,
         analysis_data.time,
         order=1,
     )
 
-    p_amont_ordre2 = model.simulate_pamont(
+    p_amont_ordre2 = model.simulate_pression_amont(
         analysis_data.pressure_amont[0],
         analysis_data.pressure_avale,
         analysis_data.time,

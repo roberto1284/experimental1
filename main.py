@@ -1,9 +1,11 @@
 from constants import KLINKENBERG_ORDER_1_REF, KLINKENBERG_ORDER_2_REF, PERMEABILITY_REF
 from data_loader import load_excel_adrien,extract_important_data
 import numpy as np
+from optimization import DarcyKlinkenbergOptimizer
 from processors import LocalLinearRegressionProcessor, SavgolProcessor
-from validation import validate_against_excel
+from validation import validate_against_excel, compare_results, check_optimization
 from models import DarcyKlinkenbergModel
+import matplotlib.pyplot as plt
 
 
 from plots import (
@@ -19,12 +21,6 @@ def main():
     analysis_data=extract_important_data(raw_data)  
     excel_model = DarcyKlinkenbergModel(analysis_data)
 
-    darcy_model = DarcyKlinkenbergModel(
-        analysis_data,
-        permeability=PERMEABILITY_REF,
-        b1=KLINKENBERG_ORDER_1_REF,
-        b2=KLINKENBERG_ORDER_2_REF,
-    )
      
     dP_dt_dummy = np.gradient(
         analysis_data.pressure_amont,
@@ -39,25 +35,15 @@ def main():
         )
     )
 
-    results_linreg2 = (
-        LocalLinearRegressionProcessor()
-        .process(
-            analysis_data,
-            darcy_model,
-        )
-    )
 
-    
+    '''
     all_ok = compare_results(
         results_linreg,
         results_linreg2,
     )
-
     print("\nGlobal check:", all_ok)
 
-
-
-
+    '''
     
 
     results_savgol = (
@@ -69,18 +55,47 @@ def main():
     )      
 
     
-    p_excel = excel_model.simulate_pamont(
-        analysis_data.pressure_amont[0],
-        analysis_data.pressure_avale,
-        analysis_data.time,
-        order=1,
+    optimizer = DarcyKlinkenbergOptimizer(
+        analysis_data
     )
-    p_darcy = darcy_model.simulate_pamont(
-        analysis_data.pressure_amont[0],
-        analysis_data.pressure_avale,
-        analysis_data.time,
-        order=1,
+
+    K_opt = optimizer.optimize_permeability()
+    b1_opt = optimizer.optimize_b1()
+    b2_opt = optimizer.optimize_b2()
+    check_optimization(
+        optimizer)
+    
+
+
+
+
+    darcy_model_opt = DarcyKlinkenbergModel(
+        analysis_data,
+        permeability=K_opt,
+        b1=b1_opt,
+        b2=b2_opt,
     )
+
+    results_linreg_opt = (
+        LocalLinearRegressionProcessor()
+        .process(
+            analysis_data,
+            darcy_model_opt,
+        )
+    )
+    results_savgol_opt = (
+        SavgolProcessor()
+        .process(
+            analysis_data,
+            darcy_model_opt,
+        )
+    )
+
+  
+
+
+
+
     
 
 
@@ -90,11 +105,24 @@ def main():
         plot_summary(
             analysis_data,
             results_linreg,
+            title="Summary - Excel"
         )
         plot_summary(
             analysis_data,
             results_savgol,
+            title="Summary - Savitzky-Golay"
         )
+        plot_summary(
+            analysis_data,
+            results_linreg_opt,
+            title="Summary - Optimized Model"
+        )
+        plot_summary(
+            analysis_data,
+            results_savgol_opt,
+            title="Summary - Optimized Savitzky-Golay"
+        )
+        plt.show()
     
     VALIDATION = False  # Set to True to enable validation against Excel data
     if VALIDATION:
@@ -121,74 +149,15 @@ def main():
         )
 
     
-    plot_derivative_comparison(
-        analysis_data.time,
-        dP_dt_dummy,
-        results_linreg.dP_dt,
-        results_savgol.dP_dt,
-    )
+        plot_derivative_comparison(
+            analysis_data.time,
+            dP_dt_dummy,
+            results_linreg.dP_dt,
+            results_savgol.dP_dt,
+        )
 
 
-def compare_results(
-    results_ref,
-    results_test,
-):
-    checks = {
-        "p_amont_smooth": np.allclose(
-            results_ref.p_amont_smooth,
-            results_test.p_amont_smooth,
-        ),
-        "p_avale_smooth": np.allclose(
-            results_ref.p_avale_smooth,
-            results_test.p_avale_smooth,
-        ),
-        "p_apparent_smooth": np.allclose(
-            results_ref.p_apparent_smooth,
-            results_test.p_apparent_smooth,
-        ),
-        "dP_dt": np.allclose(
-            results_ref.dP_dt,
-            results_test.dP_dt,
-        ),
-        "k_apparent_exp": np.allclose(
-            results_ref.k_apparent_exp,
-            results_test.k_apparent_exp,
-        ),
-        "k_apparent_model": np.allclose(
-            results_ref.k_apparent_model,
-            results_test.k_apparent_model,
-        ),
-        "conductance_apparent": np.allclose(
-            results_ref.conductance_apparent,
-            results_test.conductance_apparent,
-        ),
-        "p_amont_ordre0": np.allclose(
-            results_ref.p_amont_ordre0,
-            results_test.p_amont_ordre0,
-        ),
-        "p_amont_ordre1": np.allclose(
-            results_ref.p_amont_ordre1,
-            results_test.p_amont_ordre1,
-        ),
-        "p_amont_ordre2": np.allclose(
-            results_ref.p_amont_ordre2,
-            results_test.p_amont_ordre2,
-        ),
-        "knudsen": np.allclose(
-            results_ref.knudsen,
-            results_test.knudsen,
-        ),
-    }
 
-    print("\nResults comparison")
-    print("-" * 40)
-
-    for name, equal in checks.items():
-        print(f"{name:<25} {equal}")
-
-    print("-" * 40)
-
-    return all(checks.values())
 
 
 if __name__=="__main__":

@@ -37,6 +37,27 @@ def load_excel_adrien():
         pressure_check_avale=pressure_check_avale,
     )
 
+def load_excel_2():
+    local=Path(".")
+    case=local/"Y SC MOLECULAIRE"
+    for file in case.glob("Reproduction*.xlsx"):
+        df_data = pd.read_excel(file,sheet_name=0,header=21,usecols="B:I,M:N,P:U")
+        df_analyse = pd.read_excel(file,sheet_name=1,header=22,usecols="B:P")
+    
+
+
+    time=df_data["t [s]"].to_numpy()
+    pressure_amont=df_data["Pamont exp [Pa]"].to_numpy()
+    pressure_avale=df_data["Paval exp [Pa]"].to_numpy()
+    
+    
+    return AnalysisData(
+        time=time, 
+        pressure_amont=pressure_amont, 
+        pressure_avale=pressure_avale, 
+        temp_moyenne_global=np.zeros_like(time)  # Placeholder, replace with actual temperature data if available
+    )
+
 def extract_important_data(raw_data):
     pressure_amont,pressure_avale=capteur_selector(raw_data.pfeiffer_amont,raw_data.pfeiffer_avale,raw_data.agilent_amont,raw_data.agilent_avale)
 
