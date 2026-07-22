@@ -72,22 +72,26 @@ class SavgolProcessor:
             method="Savitzky-Golay",
         )
 
-class LocalLinearRegressionProcessor:
+class LocalPolynomialRegressionProcessor:
 
     def __init__(
         self,
         half_window=126,
+        polyorder=1,
     ):
         self.half_window = half_window
-    
-    def local_linear_regression(
+        self.polyorder = polyorder
+
+    def local_polynomial_regression(
         self,
         pressure,
         time,
     ):
 
-        a_array = []
-        b_array = []
+        
+        dP_dt_array = []
+        pressure_smooth = []
+
 
         N = len(time)
 
@@ -99,17 +103,17 @@ class LocalLinearRegressionProcessor:
             t = time[start:end]
             P = pressure[start:end]
 
-            a, b = np.polyfit(t, P, 1)
+            coeffs = np.polyfit(t, P, self.polyorder)
+            p_smooth = np.polyval(coeffs, time[i])
+            dcoeffs = np.polyder(coeffs)
+            dP_dt = np.polyval(dcoeffs, time[i])
 
-            a_array.append(a)
-            b_array.append(b)
+            dP_dt_array.append(dP_dt)
+            pressure_smooth.append(p_smooth)
 
-        a_array = np.array(a_array)
-        b_array = np.array(b_array)
+            
 
-        pressure_smooth = a_array * time + b_array
-
-        return a_array, b_array, pressure_smooth
+        return np.array(dP_dt_array), np.array(pressure_smooth)
 
     def process(
         self,
@@ -117,12 +121,12 @@ class LocalLinearRegressionProcessor:
         model,
     ):
 
-        a_amont, b_amont, p_amont_smooth = self.local_linear_regression(
+        dP_dt_amont, p_amont_smooth = self.local_polynomial_regression(
             analysis_data.pressure_amont,
             time=analysis_data.time,
         )
 
-        a_avale, b_avale, p_avale_smooth = self.local_linear_regression(
+        dP_dt_avale, p_avale_smooth = self.local_polynomial_regression(
             analysis_data.pressure_avale,
             time=analysis_data.time,
         )
@@ -132,6 +136,6 @@ class LocalLinearRegressionProcessor:
             model=model,
             p_amont_smooth=p_amont_smooth,
             p_avale_smooth=p_avale_smooth,
-            dP_dt=a_amont,
-            method="Local Linear Regression",
+            dP_dt=dP_dt_amont,
+            method=f"Local Polynomial Regression (order={self.polyorder}, window={self.half_window})",
         )

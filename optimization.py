@@ -18,17 +18,18 @@ class DarcyKlinkenbergOptimizer:
         self,
         analysis_data,
         initial_guess=None,
+        constants=None,
     ):
         self.data = analysis_data
-        
-        
+        self.constants = constants
 
         
         reference_model = DarcyKlinkenbergModel(
             self.data,
-            PERMEABILITY_REF,
-            KLINKENBERG_ORDER_1_REF,
-            KLINKENBERG_ORDER_2_REF,
+            self.constants,
+            self.constants.PERMEABILITY_REF,
+            self.constants.KLINKENBERG_ORDER_1_REF,
+            self.constants.KLINKENBERG_ORDER_2_REF,
         )
 
         p_reference = reference_model.simulate_pression_amont(
@@ -60,9 +61,9 @@ class DarcyKlinkenbergOptimizer:
             initial_guess
             if initial_guess is not None
             else [
-                PERMEABILITY_REF,
-                KLINKENBERG_ORDER_1_REF,
-                KLINKENBERG_ORDER_2_REF,
+                self.constants.PERMEABILITY_REF,
+                self.constants.KLINKENBERG_ORDER_1_REF,
+                self.constants.KLINKENBERG_ORDER_2_REF,
             ]
         )
 
@@ -77,6 +78,7 @@ class DarcyKlinkenbergOptimizer:
 
         model = DarcyKlinkenbergModel(
             self.data,
+            self.constants,
             permeability,
             self.b1,
             self.b2,
@@ -107,11 +109,11 @@ class DarcyKlinkenbergOptimizer:
         )     
     
     
-    def optimize_permeability(self):
+    def optimize_permeability(self,):
         
         result = minimize_scalar(
                 self.objective_permeability,
-                bounds=(0.1*PERMEABILITY_REF, 10*PERMEABILITY_REF),
+                bounds=(0.1*self.constants.PERMEABILITY_REF, 10*self.constants.PERMEABILITY_REF),
                 method="bounded",
                 options={"xatol": 1e-16, "maxiter": 1000},
             )
@@ -128,6 +130,7 @@ class DarcyKlinkenbergOptimizer:
 
         model = DarcyKlinkenbergModel(
             self.data,
+            self.constants,
             self.permeability,
             b1,
             self.b2,
@@ -161,8 +164,8 @@ class DarcyKlinkenbergOptimizer:
         result = minimize_scalar(
             self.objective_b1,
             bounds=(
-                0.1 * KLINKENBERG_ORDER_1_REF,
-                10 * KLINKENBERG_ORDER_1_REF,
+                0.1 * self.constants.KLINKENBERG_ORDER_1_REF,
+                10 * self.constants.KLINKENBERG_ORDER_1_REF,
             ),
             method="bounded",
             options={"maxiter": 1000},
@@ -181,6 +184,7 @@ class DarcyKlinkenbergOptimizer:
 
         model = DarcyKlinkenbergModel(
             self.data,
+            self.constants,
             self.permeability,
             self.b1,
             b2,
@@ -214,8 +218,8 @@ class DarcyKlinkenbergOptimizer:
         result = minimize_scalar(
             self.objective_b2,
             bounds=(
-                0.1 * KLINKENBERG_ORDER_2_REF,
-                10 * KLINKENBERG_ORDER_2_REF,
+                0.1 * self.constants.KLINKENBERG_ORDER_2_REF,
+                10 * self.constants.KLINKENBERG_ORDER_2_REF,
             ),
             method="bounded",
             options={"maxiter": 1000},
@@ -240,6 +244,7 @@ class DarcyKlinkenbergOptimizer:
 
         model = DarcyKlinkenbergModel(
             self.data,
+            self.constants,
             permeability,
             b1,
             b2,

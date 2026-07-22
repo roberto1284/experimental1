@@ -9,7 +9,8 @@ def build_results(
     dP_dt,
     method,
 ):
-
+    p_amont_experimental = analysis_data.pressure_amont
+    p_avale_experimental = analysis_data.pressure_avale
     p_apparent_smooth = model.apparent_pressure(
         p_amont_smooth,
         p_avale_smooth,
@@ -79,6 +80,8 @@ def build_results(
     free_molecular_mask = knudsen >= 10
 
     return Results(
+        p_amont_experimental=p_amont_experimental,
+        p_avale_experimental=p_avale_experimental,
         p_amont_smooth=p_amont_smooth,
         p_avale_smooth=p_avale_smooth,
         p_apparent_smooth=p_apparent_smooth,

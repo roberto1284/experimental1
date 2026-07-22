@@ -16,7 +16,8 @@ def load_excel_check():
         df_analyse = pd.read_excel(file,sheet_name=1,header=22,usecols="B:P")
     
     p_amont_ordre2_check=df_data["Pamont 1D visqueux + raréfié ordre 1 + raréfié ordre 2 [Pa]"].to_numpy()
-
+    p_amont_ordre1_check=df_data["Pamont 1D visqueux + raréfié ordre 1 [Pa]"].to_numpy()
+    p_amont_ordre0_check=df_data["Pamont 1D visqueux [Pa]"].to_numpy()
 
     
     a_amont_check=df_analyse["Interpolation linéaire a - Pamont [Pa/s]"].to_numpy()
@@ -28,6 +29,8 @@ def load_excel_check():
 
     
     return {
+        "p_amont_ordre0": p_amont_ordre0_check,
+        "p_amont_ordre1": p_amont_ordre1_check,
         "p_amont_ordre2": p_amont_ordre2_check,
         "a_amont": a_amont_check,
         "b_amont": b_amont_check,
@@ -36,6 +39,7 @@ def load_excel_check():
         "permeability_apparent": permeability_apparent_check,
         "conductance_apparent": conductance_apparent_check,
     }
+
 
 def load_excel_check2():
     local=Path(".")
@@ -85,52 +89,60 @@ def load_excel_check2():
 
 
 def validate_against_excel(
-    p_amont_ordre2,
-    a_amont,
-    b_amont,
-    p_amont_smooth,
-    p_apparent_smooth,
-    permeability_apparent,
-    conductance_apparent,
+    results
 ):
 
     excel = load_excel_check()
 
     print("Check a:",
-          np.allclose(a_amont, excel["a_amont"]))
+          np.allclose(results.dP_dt, excel["a_amont"]))
 
-    print("Check b:",
-          np.allclose(b_amont, excel["b_amont"]))
+
 
     print("Check P:",
           np.allclose(
-              p_amont_smooth,
+              results.p_amont_smooth,
               excel["p_amont_smooth"]
           ))
 
     print("Check P apparent:",
           np.allclose(
-              p_apparent_smooth,
+              results.p_apparent_smooth,
               excel["p_apparent_smooth"]
           ))
 
     print("Check permeability:",
           np.allclose(
-              permeability_apparent,
+              results.k_apparent_exp,
               excel["permeability_apparent"]
           ))
 
     print("Check conductance:",
           np.allclose(
-              conductance_apparent,
+              results.conductance_apparent,
               excel["conductance_apparent"]
           ))
     
+    print("Check P_amont ordre 0:",
+          np.allclose(
+              results.p_amont_ordre0,
+              excel["p_amont_ordre0"]
+          ))
+    
+    print("Check P_amont ordre 1:",
+          np.allclose(
+              results.p_amont_ordre1,
+              excel["p_amont_ordre1"]
+          ))
+
+
+    
     print("Check P_amont ordre 2:",
           np.allclose(
-              p_amont_ordre2,
+              results.p_amont_ordre2,
               excel["p_amont_ordre2"]
           ))
+
 
 def validate_against_excel2(
     results

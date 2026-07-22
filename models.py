@@ -1,8 +1,5 @@
 import numpy as np
 
-
-
-
 class DarcyKlinkenbergModel:
 
     def __init__(

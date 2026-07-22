@@ -26,6 +26,9 @@ class AnalysisData:
 @dataclass
 class Results:
 
+    p_amont_experimental: np.ndarray
+    p_avale_experimental: np.ndarray
+
     p_amont_smooth: np.ndarray
     p_avale_smooth: np.ndarray
     p_apparent_smooth: np.ndarray

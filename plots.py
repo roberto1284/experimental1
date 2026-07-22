@@ -28,36 +28,30 @@ def plot_pressure_smoothing(
 
     plt.show()
 
+
 def plot_derivative_comparison(
     time,
-    derivative_gradient,
-    derivative_regression,
-    derivative_savgol,
+    derivative_dummy,
+    *results,
 ):
 
     plt.figure(figsize=(10, 6))
 
     plt.plot(
         time,
-        derivative_gradient,
+        derivative_dummy,
         alpha=0.5,
         linewidth=0.5,
-        label="Gradient",
+        label="Raw derivative",
     )
 
-    plt.plot(
-        time,
-        derivative_regression,
-        linewidth=2,
-        label="Local linear regression",
-    )
-
-    plt.plot(
-        time,
-        derivative_savgol,
-        linewidth=2,
-        label="Savitzky-Golay",
-    )
+    for result in results:
+        plt.plot(
+            time,
+            result.dP_dt,
+            linewidth=2,
+            label=result.method,
+        )
 
     plt.xlabel("Time [s]")
     plt.ylabel("dP/dt [Pa/s]")
@@ -65,7 +59,7 @@ def plot_derivative_comparison(
     plt.legend()
     plt.grid()
 
-    plt.show()
+
 
 def plotting(x,name_x,y,name_y):
     plt.plot(
@@ -284,24 +278,26 @@ def plot_summary(
     axes[0, 0].plot(
         analysis_data.time,
         results.p_amont_ordre0,
-        label="Order 0",
+        label="Vicous (order 0)",
     )
 
     axes[0, 0].plot(
         analysis_data.time,
         results.p_amont_ordre1,
-        label="Order 1",
+        label="Viscous + rarefaction (order 1)",
     )
 
     axes[0, 0].plot(
         analysis_data.time,
         results.p_amont_ordre2,
-        label="Order 2",
+        label="Viscous + rarefaction (order 1+2)",
+        linestyle="--",
     )
 
     axes[0, 0].set_title("Pamont model comparison")
     axes[0, 0].set_xlabel("Time [s]")
     axes[0, 0].set_ylabel("Pressure [Pa]")
+    axes[0, 0].set_yscale("log")
     axes[0, 0].grid()
     axes[0, 0].legend()
 
@@ -352,6 +348,9 @@ def plot_summary(
     axes[0, 1].set_title("Kapp vs apparent pressure")
     axes[0, 1].set_xlabel("Apparent pressure [Pa]")
     axes[0, 1].set_ylabel("Apparent permeability [m²]")
+    axes[0, 1].set_yscale("log")
+    axes[0, 1].set_xscale("log")
+    axes[0, 1].invert_xaxis()  # Invert x-axis for better visualization
     axes[0, 1].grid()
     axes[0, 1].legend()
 
@@ -370,12 +369,49 @@ def plot_summary(
         results.p_apparent_smooth,
         color="black",
         linewidth=2,
+        label="P apparent smooth",
     )
 
-    axes[1, 0].set_title("Apparent pressure")
+    axes[1, 0].plot(
+        analysis_data.time,
+        results.p_amont_smooth,
+        color="tab:blue",
+        linewidth=2,
+        label="Pamont smooth",
+    )
+    axes[1, 0].plot(
+        analysis_data.time,
+        results.p_avale_smooth,
+        color="tab:orange",
+        linewidth=2,
+        label="Pavale smooth",
+    )
+    axes[1, 0].plot(
+        analysis_data.time,
+        analysis_data.pressure_amont,
+        ".",
+        color="tab:blue",
+        alpha=0.7,
+        markersize=4,
+        label="Pamont raw",
+    )
+    axes[1, 0].plot(
+        analysis_data.time,
+        analysis_data.pressure_avale,   
+        ".",
+        color="tab:orange",
+        alpha=0.7,
+        markersize=4,
+        label="Pavale raw",
+    )
+
+
+    axes[1, 0].set_title("Pressures vs time")
     axes[1, 0].set_xlabel("Time [s]")
     axes[1, 0].set_ylabel("Pressure [Pa]")
+    axes[1, 0].set_yscale("log")
     axes[1, 0].grid()
+    axes[1, 0].legend()
 
     # ==========================================================
     # Kapp vs time
