@@ -1,18 +1,6 @@
 import numpy as np
 
-from constants import (
-    DYNAMIC_VISCOSITY,
-    EPAISSEUR_ECHANTILLON,
-    R_GAS,
-    REFERENCE_TEMPERATURE,
-    SECTION_PASSANTE,
-    CYLINDER_SHAPE_FACTOR,
-    V_AMONT,
-    APPARENT_PRESSURE_FACTOR,
-    KLINKENBERG_ORDER_1_REF,
-    KLINKENBERG_ORDER_2_REF,
-    PERMEABILITY_REF
-)
+
 
 
 class DarcyKlinkenbergModel:
@@ -20,15 +8,33 @@ class DarcyKlinkenbergModel:
     def __init__(
         self,
         analysis_data,
-        permeability=PERMEABILITY_REF,
-        b1=KLINKENBERG_ORDER_1_REF,
-        b2=KLINKENBERG_ORDER_2_REF,
+        constants,
+        permeability=None,
+        b1=None,
+        b2=None,
     ):
 
         self.data = analysis_data
-        self.permeability = permeability
-        self.b1 = b1
-        self.b2 = b2
+        self.constants = constants
+
+        self.permeability = (
+            permeability
+            if permeability is not None
+            else constants.PERMEABILITY_REF
+        )
+
+        self.b1 = (
+            b1
+            if b1 is not None
+            else constants.KLINKENBERG_ORDER_1_REF
+        )
+
+        self.b2 = (
+            b2
+            if b2 is not None
+            else constants.KLINKENBERG_ORDER_2_REF
+        )
+
     
     def apparent_pressure(
         self,
@@ -37,8 +43,8 @@ class DarcyKlinkenbergModel:
     ):
 
         return (
-            APPARENT_PRESSURE_FACTOR * p_amont_smooth
-            + (1 - APPARENT_PRESSURE_FACTOR) * p_avale_smooth
+            self.constants.APPARENT_PRESSURE_FACTOR * p_amont_smooth
+            + (1 - self.constants.APPARENT_PRESSURE_FACTOR) * p_avale_smooth
         )
 
     def apparent_permeability_model(
@@ -60,11 +66,11 @@ class DarcyKlinkenbergModel:
     ):
 
         return (
-            SECTION_PASSANTE
+            self.constants.SECTION_PASSANTE
             * permeability_apparent
             * p_apparent_smooth
-            / DYNAMIC_VISCOSITY
-            / EPAISSEUR_ECHANTILLON
+            / self.constants.DYNAMIC_VISCOSITY
+            / self.constants.EPAISSEUR_ECHANTILLON
         )
     
     def knudsen_number(
@@ -74,15 +80,15 @@ class DarcyKlinkenbergModel:
     ):
         
         mean_free_path = (
-                DYNAMIC_VISCOSITY
+                self.constants.DYNAMIC_VISCOSITY
                 / (
                     pressure
-                    / R_GAS
-                    / REFERENCE_TEMPERATURE
+                    / self.constants.R_GAS
+                    / self.constants.REFERENCE_TEMPERATURE
                 )
                 / np.sqrt(
-                    R_GAS
-                    * REFERENCE_TEMPERATURE
+                    self.constants.R_GAS
+                    * self.constants.REFERENCE_TEMPERATURE
                 )
             )
 
@@ -96,12 +102,12 @@ class DarcyKlinkenbergModel:
             order,           
     ):
         coef = (
-            1 / V_AMONT
+            1 / self.constants.V_AMONT
             * self.permeability
-            / DYNAMIC_VISCOSITY
-            * CYLINDER_SHAPE_FACTOR
-            * SECTION_PASSANTE
-            / EPAISSEUR_ECHANTILLON
+            / self.constants.DYNAMIC_VISCOSITY
+            * self.constants.CYLINDER_SHAPE_FACTOR
+            * self.constants.SECTION_PASSANTE
+            / self.constants.EPAISSEUR_ECHANTILLON
         )
 
         term = 0.5 * (p_amont**2 - p_avale**2)
@@ -113,6 +119,7 @@ class DarcyKlinkenbergModel:
             )
             
         if order >= 2:
+            #print(f"p_amont: {p_amont}, p_avale: {p_avale}")
             term += (
                 self.b2
                 * np.log(p_amont / p_avale)
@@ -127,12 +134,15 @@ class DarcyKlinkenbergModel:
         time,
         order,
     ):
+        #print(f"Initial p_amont: {p_amont_0}")
 
         p_amont_simulated = [p_amont_0]
 
         for i in range(1, len(time)):
 
             dt = time[i] - time[i - 1]
+            
+          
 
             p_amont_next = self.compute_next_pressure_amont(
                 p_amont_simulated[-1],
@@ -140,6 +150,13 @@ class DarcyKlinkenbergModel:
                 dt,
                 order,
             )
+            DEPURE = False
+
+            if DEPURE==True:
+
+                if i in [1, 2, 3, 4, 5]:  # Print for the first few time steps
+                    print(f"Time step {i}: dt = {dt}, p_avale = {p_avale[i]}")
+                    print(f"Computed p_amont: {p_amont_next}")
 
             p_amont_simulated.append(p_amont_next)
 
@@ -154,11 +171,11 @@ class DarcyKlinkenbergModel:
 
         return (
             np.abs(a_amont)
-            * V_AMONT
-            * DYNAMIC_VISCOSITY
-            * EPAISSEUR_ECHANTILLON
-            / SECTION_PASSANTE
-            / CYLINDER_SHAPE_FACTOR
+            * self.constants.V_AMONT
+            * self.constants.DYNAMIC_VISCOSITY
+            * self.constants.EPAISSEUR_ECHANTILLON
+            / self.constants.SECTION_PASSANTE
+            / self.constants.CYLINDER_SHAPE_FACTOR
             / (
                 0.5
                 * (

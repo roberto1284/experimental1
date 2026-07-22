@@ -4,7 +4,7 @@ from scipy.optimize import least_squares,minimize, minimize_scalar
 
 from models import DarcyKlinkenbergModel
 
-from constants import (
+from constants2 import (
     PERMEABILITY_REF,
     KLINKENBERG_ORDER_1_REF,
     KLINKENBERG_ORDER_2_REF,

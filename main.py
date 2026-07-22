@@ -3,7 +3,7 @@ from data_loader import load_excel_adrien,extract_important_data
 import numpy as np
 from optimization import DarcyKlinkenbergOptimizer
 from processors import LocalLinearRegressionProcessor, SavgolProcessor
-from validation import validate_against_excel, compare_results, check_optimization
+from validation import validate_against_excel, compare_results, check_optimization, validate_against_excel2
 from models import DarcyKlinkenbergModel
 import matplotlib.pyplot as plt
 
@@ -34,6 +34,8 @@ def main():
             excel_model,
         )
     )
+
+    
 
 
     '''
