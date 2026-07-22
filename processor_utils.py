@@ -9,6 +9,8 @@ def build_results(
     dP_dt,
     method,
 ):
+
+    time = analysis_data.time
     p_amont_experimental = analysis_data.pressure_amont
     p_avale_experimental = analysis_data.pressure_avale
     p_apparent_smooth = model.apparent_pressure(
@@ -55,8 +57,14 @@ def build_results(
     )
 
     k_apparent_model = (
-        model.apparent_permeability_model(
+        model.apparent_permeability_model_coefficients(
             p_apparent_smooth,
+        )
+    )
+    k_recalee_apparent = (
+        model.apparent_permeability_recalee(
+            analysis_data.pressure_amont,
+            analysis_data.pressure_avale,
         )
     )
 
@@ -80,6 +88,7 @@ def build_results(
     free_molecular_mask = knudsen >= 10
 
     return Results(
+        time=time,
         p_amont_experimental=p_amont_experimental,
         p_avale_experimental=p_avale_experimental,
         p_amont_smooth=p_amont_smooth,
@@ -87,6 +96,7 @@ def build_results(
         p_apparent_smooth=p_apparent_smooth,
         k_apparent_exp=k_apparent_exp,
         k_apparent_model=k_apparent_model,
+        k_recalee_apparent=k_recalee_apparent,
         conductance_apparent=conductance_apparent,
         p_amont_ordre0=p_amont_ordre0,
         p_amont_ordre1=p_amont_ordre1,

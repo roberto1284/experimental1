@@ -46,7 +46,7 @@ def load_excel_check2():
     case=local/"Y SC MOLECULAIRE"
     for file in case.glob("Reproduction*.xlsx"):
         df_data = pd.read_excel(file,sheet_name=0,header=21,usecols="B:I,M:N,P:U")
-        df_analyse = pd.read_excel(file,sheet_name=1,header=22,usecols="B:P")
+        df_analyse = pd.read_excel(file,sheet_name=1,header=22,usecols="B:S")
     
     p_amont_ordre2_check=df_data["Pamont 1D visqueux + raréfié ordre 1 + raréfié ordre 2 [Pa]"].to_numpy()
     p_amont_ordre1_check=df_data["Pamont 1D visqueux + raréfié ordre 1 [Pa]"].to_numpy()
@@ -72,6 +72,7 @@ def load_excel_check2():
     permeability_apparent_check=df_analyse["K_apparent [m²]"].to_numpy()
     conductance_apparent_check=df_analyse["Conductance apparente [m3/s]"].to_numpy()
     p_apparent_smooth_check=df_analyse["P_moyen apparente lissée [Pa]"].to_numpy()
+    K_recalee_apparent_check=df_analyse["K_recalée_apparente [m²]"].to_numpy()
 
     
     return {
@@ -82,7 +83,8 @@ def load_excel_check2():
         "b_amont": b_amont_check,
         "p_amont_smooth": p_amont_smooth_check,
         "p_apparent_smooth": p_apparent_smooth_check,
-        "permeability_apparent": permeability_apparent_check,
+        "K_apparent": permeability_apparent_check,
+        "K_recalee_apparent": K_recalee_apparent_check,
         "conductance_apparent": conductance_apparent_check,
     }
 
@@ -142,6 +144,12 @@ def validate_against_excel(
               results.p_amont_ordre2,
               excel["p_amont_ordre2"]
           ))
+    
+    print("Check K_recalee_apparent:",
+          np.allclose(
+              results.k_recalee_apparent,
+              excel["K_recalee_apparent"]
+          ))
 
 
 def validate_against_excel2(
@@ -167,10 +175,10 @@ def validate_against_excel2(
               excel["p_apparent_smooth"]
           ))
 
-    print("Check permeability:",
+    print("Check K_apparent:",
           np.allclose(
               results.k_apparent_exp,
-              excel["permeability_apparent"]
+              excel["K_apparent"]
           ))
 
     print("Check conductance:",
@@ -190,6 +198,7 @@ def validate_against_excel2(
               results.p_amont_ordre1,
               excel["p_amont_ordre1"]
           ))
+    
 
 
     
@@ -198,6 +207,11 @@ def validate_against_excel2(
               results.p_amont_ordre2,
               excel["p_amont_ordre2"]
           ))
+    print("Check K_recalee_apparent:",
+        np.allclose(
+            results.k_recalee_apparent,
+            excel["K_recalee_apparent"]
+        ))
 
 
 def compare_results(

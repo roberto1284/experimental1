@@ -31,7 +31,7 @@ def plot_pressure_smoothing(
 
 def plot_derivative_comparison(
     time,
-    derivative_dummy,
+    derivative_dummy,    
     *results,
 ):
 
@@ -46,8 +46,9 @@ def plot_derivative_comparison(
     )
 
     for result in results:
+
         plt.plot(
-            time,
+            result.time,      # <- tiempo propio del resultado
             result.dP_dt,
             linewidth=2,
             label=result.method,
@@ -55,9 +56,12 @@ def plot_derivative_comparison(
 
     plt.xlabel("Time [s]")
     plt.ylabel("dP/dt [Pa/s]")
+    plt.xscale("log")
 
     plt.legend()
     plt.grid()
+
+
 
 
 
@@ -342,7 +346,15 @@ def plot_summary(
         results.k_apparent_model,
         color="black",
         linewidth=2,
-        label="Model",
+        label="K_app_model",
+    )
+    axes[0, 1].plot(
+        results.p_apparent_smooth,
+        results.k_recalee_apparent,
+        ".",
+        markersize=2,
+        color="black",
+        label="K_app_recalée",
     )
 
     axes[0, 1].set_title("Kapp vs apparent pressure")

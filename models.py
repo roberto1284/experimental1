@@ -44,7 +44,7 @@ class DarcyKlinkenbergModel:
             + (1 - self.constants.APPARENT_PRESSURE_FACTOR) * p_avale_smooth
         )
 
-    def apparent_permeability_model(
+    def apparent_permeability_model_coefficients(
         self,
         p_amont_smooth,
     ):
@@ -52,6 +52,17 @@ class DarcyKlinkenbergModel:
         return (
             self.permeability
             * (1 + self.b1 / p_amont_smooth + self.b2 / (p_amont_smooth**2))
+        )
+    
+    def apparent_permeability_recalee(
+        self,
+        p_amont_raw,
+        p_avale_raw,
+    ):
+
+        return (
+            self.permeability
+            * (1 + self.b1 * (p_amont_raw-p_avale_raw) / (0.5*(p_amont_raw**2+p_avale_raw**2)))     
         )
     
     

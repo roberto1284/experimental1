@@ -26,6 +26,8 @@ class AnalysisData:
 @dataclass
 class Results:
 
+    time: np.ndarray
+
     p_amont_experimental: np.ndarray
     p_avale_experimental: np.ndarray
 
@@ -35,6 +37,7 @@ class Results:
 
     k_apparent_exp: np.ndarray
     k_apparent_model: np.ndarray
+    k_recalee_apparent: np.ndarray
 
     conductance_apparent: np.ndarray
 

@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from data_loader import load_excel_2
 import numpy as np
 from optimization import DarcyKlinkenbergOptimizer
@@ -21,14 +23,7 @@ def main():
     analysis_data=load_excel_2()  # Call the revised function
     darcy_klinkenberg = DarcyKlinkenbergModel(analysis_data, constants2)
 
-    MASK=False  # Set to True to apply the mask
-    if MASK:
-
-        mask = analysis_data.time >= 40        
-        analysis_data.time = analysis_data.time[mask]
-        analysis_data.pressure_amont = analysis_data.pressure_amont[mask]
-        analysis_data.pressure_avale = analysis_data.pressure_avale[mask]
-     
+  
     dP_dt_dummy = np.gradient(
         analysis_data.pressure_amont,
         analysis_data.time,
@@ -56,6 +51,31 @@ def main():
         )
     )
 
+    MASK=True  # Set to True to apply the mask
+    if MASK:
+        analysis_data_masked = deepcopy(analysis_data)
+        mask = analysis_data.time >= 40        
+        analysis_data_masked.time = analysis_data.time[mask]
+        analysis_data_masked.pressure_amont = analysis_data.pressure_amont[mask]
+        analysis_data_masked.pressure_avale = analysis_data.pressure_avale[mask]
+        darcy_klinkenberg_masked = DarcyKlinkenbergModel(analysis_data_masked, constants2)
+        results_regression_order2_masked = (
+            LocalPolynomialRegressionProcessor(polyorder=2)
+            .process(
+                analysis_data_masked,
+                darcy_klinkenberg_masked,
+            )
+        )
+        results_regression_order3_masked = (
+            LocalPolynomialRegressionProcessor(polyorder=3)
+            .process(
+                analysis_data_masked,
+                darcy_klinkenberg_masked,
+            )
+        )
+    
+
+
     check_savgol = False  # Set to True to skip Savgol processing
     if check_savgol:
         results_savgol = (
@@ -72,32 +92,50 @@ def main():
         print("dt max :", np.max(dt))
 
     
+    PLOT_SUMMARY = True  # Set to True to enable summary plotting
+    if PLOT_SUMMARY:
 
+        plot_derivative_comparison(
+            analysis_data.time,
+            dP_dt_dummy,
+            results_regression_order1,
+            results_regression_order2,
+            results_regression_order3,
+            results_regression_order2_masked if MASK else None,
+            results_regression_order3_masked if MASK else None,
+        )
 
-    plot_derivative_comparison(
-        analysis_data.time,
-        dP_dt_dummy,
+        plot_summary(
+                analysis_data,
+                results_regression_order1,
+                title="Summary - order 1"
+            )
+        plot_summary(
+                analysis_data,
+                results_regression_order2,
+                title="Summary - order 2"
+            )
+        plot_summary(
+                analysis_data,
+                results_regression_order3,
+                title="Summary - order 3"
+            )
+        plot_summary(
+                analysis_data_masked if MASK else analysis_data,
+                results_regression_order2_masked if MASK else results_regression_order2,
+                title="Summary - order 2 masked" if MASK else "Summary - order 2"
+            )
+        plot_summary(
+                analysis_data_masked if MASK else analysis_data,
+                results_regression_order3_masked if MASK else results_regression_order3,
+                title="Summary - order 3 masked" if MASK else "Summary - order 3"
+            )
+        plt.show()
+
+    validate_against_excel2(
         results_regression_order1,
-        results_regression_order2,
-        results_regression_order3,
     )
 
-    plot_summary(
-            analysis_data,
-            results_regression_order1,
-            title="Summary - order 1"
-        )
-    plot_summary(
-            analysis_data,
-            results_regression_order2,
-            title="Summary - order 2"
-        )
-    plot_summary(
-            analysis_data,
-            results_regression_order3,
-            title="Summary - order 3"
-        )
-    plt.show()
 
 
 
