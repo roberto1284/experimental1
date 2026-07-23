@@ -39,7 +39,7 @@ def load_excel_adrien():
 
 def load_excel_2():
     local=Path(".")
-    case=local/"Y SC MOLECULAIRE"
+    case=local/"Y SC MOLECULAIRE PESSIMISTE"
     for file in case.glob("Reproduction*.xlsx"):
         df_data = pd.read_excel(file,sheet_name=0,header=21,usecols="B:I,M:N,P:U")
         df_analyse = pd.read_excel(file,sheet_name=1,header=22,usecols="B:P")
