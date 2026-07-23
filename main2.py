@@ -59,6 +59,13 @@ def main():
         analysis_data_masked.pressure_amont = analysis_data.pressure_amont[mask]
         analysis_data_masked.pressure_avale = analysis_data.pressure_avale[mask]
         darcy_klinkenberg_masked = DarcyKlinkenbergModel(analysis_data_masked, constants2)
+        results_regression_order1_masked = (
+            LocalPolynomialRegressionProcessor(polyorder=1)
+            .process(
+                analysis_data_masked,
+                darcy_klinkenberg_masked,
+            )
+        )
         results_regression_order2_masked = (
             LocalPolynomialRegressionProcessor(polyorder=2)
             .process(
@@ -101,6 +108,7 @@ def main():
             results_regression_order1,
             results_regression_order2,
             results_regression_order3,
+            results_regression_order1_masked if MASK else None,
             results_regression_order2_masked if MASK else None,
             results_regression_order3_masked if MASK else None,
         )
@@ -119,6 +127,11 @@ def main():
                 analysis_data,
                 results_regression_order3,
                 title="Summary - order 3"
+            )
+        plot_summary(
+                analysis_data_masked if MASK else analysis_data,
+                results_regression_order1_masked if MASK else results_regression_order1,
+                title="Summary - order 1 masked" if MASK else "Summary - order 1"
             )
         plot_summary(
                 analysis_data_masked if MASK else analysis_data,

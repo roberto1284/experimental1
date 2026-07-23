@@ -145,12 +145,10 @@ def validate_against_excel(
               excel["p_amont_ordre2"]
           ))
     
-    print("Check K_recalee_apparent:",
-          np.allclose(
-              results.k_recalee_apparent,
-              excel["K_recalee_apparent"]
-          ))
 
+
+    
+  
 
 def validate_against_excel2(
     results

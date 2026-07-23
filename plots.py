@@ -33,9 +33,10 @@ def plot_derivative_comparison(
     time,
     derivative_dummy,    
     *results,
+    title="Derivative comparison dP/dt=dP/dt(Pamont)",
 ):
 
-    plt.figure(figsize=(10, 6))
+    fig=plt.figure(figsize=(10, 6))
 
     plt.plot(
         time,
@@ -44,6 +45,10 @@ def plot_derivative_comparison(
         linewidth=0.5,
         label="Raw derivative",
     )
+
+    fig.suptitle(title, fontsize=16)
+    fig.canvas.manager.set_window_title(title)
+    
 
     for result in results:
 
@@ -261,6 +266,7 @@ def plot_summary(
         constrained_layout=True,
     )
     fig.suptitle(title, fontsize=16)
+    fig.canvas.manager.set_window_title(title)
 
     # ==========================================================
     # Pamont models
